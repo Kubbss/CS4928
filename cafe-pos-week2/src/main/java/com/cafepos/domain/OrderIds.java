@@ -1,7 +1,7 @@
 package com.cafepos.domain;
 
 public final class OrderIds {
-    private static long orderCounter = 1001;
+    private static long orderCounter = 0;
 
     private OrderIds() {
     }
