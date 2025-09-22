@@ -49,9 +49,9 @@ public class OrderTests {
     @Test
     void taxAtPercent_calculates_correctly() {
         Order o = new Order(6);
-        o.addItem(new LineItem(new SimpleProduct("P-CF", "Coffee", Money.of(2.00)), 3)); // 6.00 subtotal
+        o.addItem(new LineItem(new SimpleProduct("P-CF", "Coffee", Money.of(2.00)), 3));
 
-        assertEquals("0.60", o.taxAtPercent(10).toString()); // 10% of 6.00
+        assertEquals("0.60", o.taxAtPercent(10).toString());
     }
 
     @Test
@@ -65,20 +65,19 @@ public class OrderTests {
     @Test
     void totalWithTax_includes_subtotal_and_tax() {
         Order o = new Order(8);
-        o.addItem(new LineItem(new SimpleProduct("P-LT", "Latte", Money.of(4.00)), 2)); // 8.00 subtotal
+        o.addItem(new LineItem(new SimpleProduct("P-LT", "Latte", Money.of(4.00)), 2));
 
-        assertEquals("8.80", o.totalWithTax(10).toString()); // subtotal 8.00 + tax 0.80
+        assertEquals("8.80", o.totalWithTax(10).toString());
     }
 
-    // --- Sample from the lab handout ---
     @Test
     void order_totals() {
         var p1 = new SimpleProduct("A", "A", Money.of(2.50));
         var p2 = new SimpleProduct("B", "B", Money.of(3.50));
         var o = new Order(9);
 
-        o.addItem(new LineItem(p1, 2)); // 5.00
-        o.addItem(new LineItem(p2, 1)); // 3.50 → subtotal 8.50
+        o.addItem(new LineItem(p1, 2));
+        o.addItem(new LineItem(p2, 1));
 
         assertEquals("8.50", o.subtotal().toString());
         assertEquals("0.85", o.taxAtPercent(10).toString());

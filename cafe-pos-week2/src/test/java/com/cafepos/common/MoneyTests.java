@@ -50,7 +50,7 @@ public class MoneyTests {
 
     @Test
     void rounding_to_two_decimals() {
-        Money m = Money.of(2.555); // should round half up
+        Money m = Money.of(2.555);
         assertEquals("2.56", m.toString());
     }
 
