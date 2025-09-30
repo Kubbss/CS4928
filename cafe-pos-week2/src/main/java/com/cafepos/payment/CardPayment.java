@@ -11,6 +11,8 @@ public final class CardPayment implements PaymentStrategy {
 
     @Override
     public void pay(Order order) {
-        System.out.println("[Card] Customer paid " + order.totalWithTax(10) + " EUR with card  *****" + cardNumber.substring(cardNumber.length()-4));
+        String last4 = cardNumber.substring(cardNumber.length() - 4);
+        System.out.println("[Card] Customer paid " + order.totalWithTax(10)
+                + " EUR with card ****" + last4);
     }
 }
