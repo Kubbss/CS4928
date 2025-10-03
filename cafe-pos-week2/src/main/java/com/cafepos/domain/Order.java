@@ -36,11 +36,6 @@ public final class Order implements OrderPublisher {
         }
     }
 
-    @Override
-    private void notifyObservers(String eventType) {
-        notifyObservers(this, eventType);
-    }
-
     public void addItem(LineItem li) {
         if (li == null) {
             throw new IllegalArgumentException("LineItem is required");
@@ -49,7 +44,7 @@ public final class Order implements OrderPublisher {
             throw new IllegalArgumentException("Quantity must be > 0");
         }
         items.add(li);
-        notifyObservers("itemAdded");
+        notifyObservers(this, "itemAdded");
     }
 
     public Money subtotal() {
@@ -79,11 +74,11 @@ public final class Order implements OrderPublisher {
         }
 
         strategy.pay(this);
-        notifyObservers("paid");
+        notifyObservers(this, "paid");
     }
 
     public void markReady() {
-        notifyObservers("ready");
+        notifyObservers(this, "ready");
     }
 
     public long getId() {
