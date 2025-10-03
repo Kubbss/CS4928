@@ -8,12 +8,37 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Order {
+public final class Order implements OrderPublisher {
     private final long id;
     private final List<LineItem> items = new ArrayList<>();
+    private final List<OrderObserver> observers = new ArrayList<>();
 
     public Order(long id) {
         this.id = id;
+    }
+
+    @Override
+    public void register(OrderObserver o) {
+        if (o == null) return;
+        if (!observers.contains(o)) observers.add(o);
+    }
+
+    @Override
+    public void unregister(OrderObserver o) {
+        if (o == null) return;
+        observers.remove(o);
+    }
+
+    @Override
+    public void notifyObservers(Order order, String eventType) {
+        for (OrderObserver obs : observers) {
+            obs.updated(order, eventType);
+        }
+    }
+
+    @Override
+    private void notifyObservers(String eventType) {
+        notifyObservers(this, eventType);
     }
 
     public void addItem(LineItem li) {
@@ -24,6 +49,7 @@ public final class Order {
             throw new IllegalArgumentException("Quantity must be > 0");
         }
         items.add(li);
+        notifyObservers("itemAdded");
     }
 
     public Money subtotal() {
@@ -53,6 +79,11 @@ public final class Order {
         }
 
         strategy.pay(this);
+        notifyObservers("paid");
+    }
+
+    public void markReady() {
+        notifyObservers("ready");
     }
 
     public long getId() {

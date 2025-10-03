@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 final class PaymentStrategiesTest {
 
-    // Build the same sample order as the demo:
     // 2x Espresso (2.50) + 1x Cookie (3.50) = 8.50; +10% tax => 9.35
     private Order sampleOrder() {
         Catalog catalog = new InMemoryCatalog();
@@ -38,7 +37,6 @@ final class PaymentStrategiesTest {
         } finally {
             System.setOut(orig);
         }
-        // normalize newlines; trim trailing newline
         return baos.toString().replace("\r\n", "\n").trim();
     }
 
@@ -47,10 +45,8 @@ final class PaymentStrategiesTest {
         Order order = sampleOrder();
         final boolean[] called = {false};
 
-        // Functional interface: a simple lambda fake
         PaymentStrategy fake = o -> called[0] = true;
 
-        // Requires Order#pay(PaymentStrategy) per the lab
         order.pay(fake);
 
         assertTrue(called[0], "Order should delegate to the provided PaymentStrategy");
