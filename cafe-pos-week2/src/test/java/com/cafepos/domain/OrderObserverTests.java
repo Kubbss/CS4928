@@ -81,7 +81,7 @@ public class OrderObserverTests {
         OrderObserver obs = (o, evt) -> events.add(evt);
 
         order.register(obs);
-        order.register(obs); // should be ignored as a duplicate
+        order.register(obs);
 
         order.addItem(new LineItem(product, 1));
 

@@ -1,0 +1,112 @@
+@startuml
+title Cafe POS — Week 4 (core model with code usages)
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "com.cafepos.domain" {
+  interface OrderPublisher {
+    + register(o: OrderObserver)
+    + unregister(o: OrderObserver)
+    + notifyObservers(order: Order, eventType: String)
+  }
+
+  interface OrderObserver {
+    + updated(order: Order, eventType: String)
+  }
+
+  class Order {
+    + addItem(li: LineItem)
+    + pay(strategy: com.cafepos.payment.PaymentStrategy)
+    + markReady()
+    + getItems(): java.util.List<LineItem>
+    + getId(): long
+    + subtotal(): com.cafepos.common.Money
+    + taxAtPercent(percent: int): com.cafepos.common.Money
+    + totalWithTax(percent: int): com.cafepos.common.Money
+    + register(o: OrderObserver)
+    + unregister(o: OrderObserver)
+    + notifyObservers(order: Order, eventType: String)
+  }
+
+  class LineItem {
+    + quantity(): int
+    + product(): Product
+    + lineTotal(): com.cafepos.common.Money
+  }
+
+  abstract class Product {
+    + id: String
+    + name: String
+    + price: com.cafepos.common.Money
+  }
+
+  class SimpleProduct
+}
+
+package "com.cafepos.view" {
+  class KitchenDisplay {
+    + updated(order: com.cafepos.domain.Order, eventType: String)
+  }
+  class DeliveryDesk {
+    + updated(order: com.cafepos.domain.Order, eventType: String)
+  }
+  class CustomerNotifier {
+    + updated(order: com.cafepos.domain.Order, eventType: String)
+  }
+}
+
+package "com.cafepos.payment" {
+  interface PaymentStrategy {
+    + pay(order: com.cafepos.domain.Order)
+  }
+  class CashPayment
+  class CardPayment
+  class WalletPayment
+}
+
+package "com.cafepos.catalog" {
+  interface Catalog {
+    + add(p: com.cafepos.domain.Product)
+    + findById(id: String): java.util.Optional<com.cafepos.domain.Product>
+  }
+  class InMemoryCatalog
+}
+
+package "com.cafepos.common" {
+  class Money
+}
+
+' ================= RELATIONSHIPS (structure) =================
+Order ..|> OrderPublisher
+Order "1" o-- "*" LineItem
+LineItem --> Product
+SimpleProduct --|> Product
+
+com.cafepos.catalog.InMemoryCatalog ..|> com.cafepos.catalog.Catalog
+
+Order --> com.cafepos.payment.PaymentStrategy : pay(strategy)
+com.cafepos.payment.PaymentStrategy <|.. com.cafepos.payment.CashPayment
+com.cafepos.payment.PaymentStrategy <|.. com.cafepos.payment.CardPayment
+com.cafepos.payment.PaymentStrategy <|.. com.cafepos.payment.WalletPayment
+
+OrderObserver <|.. KitchenDisplay
+OrderObserver <|.. DeliveryDesk
+OrderObserver <|.. CustomerNotifier
+
+' ================= USAGES (dashed deps with code points) =================
+' Publisher -> Observer (method call)
+Order ..> OrderObserver : calls updated(order, eventType)
+
+' Views read from Order
+KitchenDisplay ..> Order : uses getId(), getItems()
+DeliveryDesk ..> Order : uses getId()
+CustomerNotifier ..> Order : uses getId()
+
+' Money usages in code
+Product --> Money : field price: Money
+LineItem ..> Money : returns lineTotal(): Money
+Order ..> Money : uses subtotal(), taxAtPercent(), totalWithTax()
+
+' Catalog uses Product types
+com.cafepos.catalog.Catalog ..> Product : add(), findById()
+@enduml
