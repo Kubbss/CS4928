@@ -48,6 +48,18 @@ public final class Money implements Comparable<Money> {
     public int compareTo(Money o) {
         return this.amount.compareTo(o.amount);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Money m)) return false;
+        return this.toString().equals(m.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
 }
 
 
