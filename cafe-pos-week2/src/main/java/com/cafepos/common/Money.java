@@ -10,6 +10,11 @@ public final class Money implements Comparable<Money> {
         return new Money(BigDecimal.valueOf(value));
     }
 
+    public static Money of(BigDecimal value) {
+        if (value == null) throw new IllegalArgumentException("value");
+        return Money.of(value.setScale(2, RoundingMode.HALF_UP).doubleValue());
+    }
+
     public static Money zero() {
         return new Money(BigDecimal.ZERO);
     }
@@ -38,6 +43,8 @@ public final class Money implements Comparable<Money> {
     public BigDecimal amount() {
         return amount;
     }
+    
+    public BigDecimal asBigDecimal(){return new BigDecimal(amount.toString());}
 
     @Override
     public String toString() {
