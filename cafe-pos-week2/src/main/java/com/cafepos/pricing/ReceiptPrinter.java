@@ -8,7 +8,7 @@ public final class ReceiptPrinter {
         receipt.append("Subtotal: ").append(pr.subtotal()).append("\n");
         
         if (pr.discount().asBigDecimal().signum() > 0) {
-            receipt.append("Discount: - ").append(pr.discount()).append("\n");
+            receipt.append("Discount: -").append(pr.discount()).append("\n");
         }
         receipt.append("Tax (").append(taxPercent).append("%): ").append(pr.tax()).append("\n");
         receipt.append("Total: ").append(pr.total());
