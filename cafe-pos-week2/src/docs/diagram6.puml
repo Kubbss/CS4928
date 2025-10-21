@@ -1,0 +1,207 @@
+@startuml
+title Cafe POS — Week 6 (core model with code usages)
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "com.cafepos.domain" {
+  interface OrderPublisher {
+    + register(o: OrderObserver)
+    + unregister(o: OrderObserver)
+    + notifyObservers(order: Order, eventType: String)
+  }
+
+  interface OrderObserver {
+    + updated(order: Order, eventType: String)
+  }
+
+  class Order {
+    + addItem(li: LineItem)
+    + pay(strategy: com.cafepos.payment.PaymentStrategy)
+    + markReady()
+    + getItems(): java.util.List<LineItem>
+    + getId(): long
+    + subtotal(): com.cafepos.common.Money
+    + taxAtPercent(percent: int): com.cafepos.common.Money
+    + totalWithTax(percent: int): com.cafepos.common.Money
+    + register(o: OrderObserver)
+    + unregister(o: OrderObserver)
+    + notifyObservers(order: Order, eventType: String)
+  }
+
+  class LineItem {
+    + quantity(): int
+    + product(): Product
+    + lineTotal(): com.cafepos.common.Money
+  }
+
+  abstract class Product {
+    + id: String
+    + name: String
+    + price: com.cafepos.common.Money
+  }
+
+  class SimpleProduct
+}
+
+package "com.cafepos.view" {
+  class KitchenDisplay {
+    + updated(order: com.cafepos.domain.Order, eventType: String)
+  }
+  class DeliveryDesk {
+    + updated(order: com.cafepos.domain.Order, eventType: String)
+  }
+  class CustomerNotifier {
+    + updated(order: com.cafepos.domain.Order, eventType: String)
+  }
+}
+
+package "com.cafepos.payment" {
+  interface PaymentStrategy {
+    + pay(order: com.cafepos.domain.Order)
+  }
+  class CashPayment
+  class CardPayment
+  class WalletPayment
+}
+
+package "com.cafepos.catalog" {
+  interface Catalog {
+    + add(p: com.cafepos.domain.Product)
+    + findById(id: String): java.util.Optional<com.cafepos.domain.Product>
+  }
+  class InMemoryCatalog
+}
+
+package "com.cafepos.common" {
+  class Money
+}
+
+' =============== Week-5 additions ===============
+package "com.cafepos.decorator" {
+  interface Priced {
+    + price(): com.cafepos.common.Money
+  }
+
+  abstract class ProductDecorator {
+    + id(): String
+    + name(): String
+    + basePrice(): com.cafepos.common.Money
+  }
+
+  class ExtraShot
+  class OatMilk
+  class Syrup
+  class SizeLarge
+}
+
+package "com.cafepos.factory" {
+  class ProductFactory {
+    + create(recipe: String): com.cafepos.domain.Product
+  }
+}
+
+' =============== Week-6 additions ===============
+package "com.cafepos.pricing" {
+  interface DiscountPolicy {
+    + discountOf(subtotal: com.cafepos.common.Money): com.cafepos.common.Money
+  }
+  class NoDiscount
+  class LoyaltyPercentDiscount
+  class FixedCouponDiscount
+
+  interface TaxPolicy {
+    + taxOn(amount: com.cafepos.common.Money): com.cafepos.common.Money
+  }
+  class FixedRateTaxPolicy
+
+  class PricingService {
+    + price(subtotal: com.cafepos.common.Money): PricingResult
+  }
+
+  class ReceiptPrinter {
+    + format(recipe: String, qty: int, pr: PricingService.PricingResult, taxPercent: int): String
+  }
+}
+
+package "com.cafepos.checkout" {
+  class CheckoutService {
+    + checkout(recipe: String, qty: int): String
+    + checkout(order: com.cafepos.domain.Order): String
+  }
+}
+
+' ================= RELATIONSHIPS (structure) =================
+Order ..|> OrderPublisher
+Order "1" o-- "*" LineItem
+LineItem --> Product
+SimpleProduct --|> Product
+
+com.cafepos.catalog.InMemoryCatalog ..|> com.cafepos.catalog.Catalog
+
+Order --> com.cafepos.payment.PaymentStrategy : pay(strategy)
+com.cafepos.payment.PaymentStrategy <|.. com.cafepos.payment.CashPayment
+com.cafepos.payment.PaymentStrategy <|.. com.cafepos.payment.CardPayment
+com.cafepos.payment.PaymentStrategy <|.. com.cafepos.payment.WalletPayment
+
+OrderObserver <|.. KitchenDisplay
+OrderObserver <|.. DeliveryDesk
+OrderObserver <|.. CustomerNotifier
+
+' ---- Week-5 decorator structure ----
+com.cafepos.decorator.ProductDecorator --|> Product
+com.cafepos.decorator.ExtraShot        --|> com.cafepos.decorator.ProductDecorator
+com.cafepos.decorator.OatMilk          --|> com.cafepos.decorator.ProductDecorator
+com.cafepos.decorator.Syrup            --|> com.cafepos.decorator.ProductDecorator
+com.cafepos.decorator.SizeLarge        --|> com.cafepos.decorator.ProductDecorator
+
+SimpleProduct ..|> com.cafepos.decorator.Priced
+com.cafepos.decorator.ExtraShot ..|> com.cafepos.decorator.Priced
+com.cafepos.decorator.OatMilk   ..|> com.cafepos.decorator.Priced
+com.cafepos.decorator.Syrup     ..|> com.cafepos.decorator.Priced
+com.cafepos.decorator.SizeLarge ..|> com.cafepos.decorator.Priced
+
+' ---- Week-6 pricing structure ----
+com.cafepos.pricing.NoDiscount             ..|> com.cafepos.pricing.DiscountPolicy
+com.cafepos.pricing.LoyaltyPercentDiscount ..|> com.cafepos.pricing.DiscountPolicy
+com.cafepos.pricing.FixedCouponDiscount    ..|> com.cafepos.pricing.DiscountPolicy
+
+com.cafepos.pricing.FixedRateTaxPolicy     ..|> com.cafepos.pricing.TaxPolicy
+
+com.cafepos.pricing.PricingService --> com.cafepos.pricing.DiscountPolicy
+com.cafepos.pricing.PricingService --> com.cafepos.pricing.TaxPolicy
+
+' ================= USAGES (dashed deps with code points) =================
+Order ..> OrderObserver : calls updated(order, eventType)
+KitchenDisplay ..> Order : uses getId(), getItems()
+DeliveryDesk ..> Order : uses getId()
+CustomerNotifier ..> Order : uses getId()
+
+Product --> Money : field price: Money
+LineItem ..> Money : returns lineTotal(): Money
+Order ..> Money : uses subtotal(), taxAtPercent(), totalWithTax()
+
+com.cafepos.catalog.Catalog ..> Product : add(), findById()
+
+' ---- Week-5 usages ----
+LineItem ..> com.cafepos.decorator.Priced : uses price() if available
+com.cafepos.factory.ProductFactory ..> SimpleProduct : creates base
+com.cafepos.factory.ProductFactory ..> com.cafepos.decorator.ExtraShot
+com.cafepos.factory.ProductFactory ..> com.cafepos.decorator.OatMilk
+com.cafepos.factory.ProductFactory ..> com.cafepos.decorator.Syrup
+com.cafepos.factory.ProductFactory ..> com.cafepos.decorator.SizeLarge
+
+' ---- Week-6 usages ----
+com.cafepos.pricing.DiscountPolicy ..> Money : discountOf(...)
+com.cafepos.pricing.TaxPolicy      ..> Money : taxOn(...)
+com.cafepos.pricing.PricingService ..> Money : price(...)
+
+com.cafepos.pricing.ReceiptPrinter ..> com.cafepos.pricing.PricingService : formats PricingResult
+com.cafepos.pricing.ReceiptPrinter ..> Money
+
+com.cafepos.checkout.CheckoutService ..> com.cafepos.factory.ProductFactory
+com.cafepos.checkout.CheckoutService ..> com.cafepos.pricing.PricingService
+com.cafepos.checkout.CheckoutService ..> com.cafepos.pricing.ReceiptPrinter
+com.cafepos.checkout.CheckoutService ..> com.cafepos.payment.PaymentStrategy
+com.cafepos.checkout.CheckoutService ..> Order : passes Order to pay(...)
+com.cafepos.checkout.CheckoutService ..> LineItem : builds item when needed
+@enduml
