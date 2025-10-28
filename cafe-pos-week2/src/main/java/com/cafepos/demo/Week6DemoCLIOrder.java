@@ -12,6 +12,9 @@ import com.cafepos.payment.CashPayment;
 import com.cafepos.payment.PaymentStrategy;
 import com.cafepos.payment.WalletPayment;
 import com.cafepos.pricing.*;
+import com.cafepos.view.CustomerNotifier;
+import com.cafepos.view.DeliveryDesk;
+import com.cafepos.view.KitchenDisplay;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -26,6 +29,10 @@ public class Week6DemoCLIOrder {
         Order order = new Order(OrderIds.next());
         String orderMaker = "";
         int itemNo = -1;
+
+        order.register(new KitchenDisplay());
+        order.register(new DeliveryDesk());
+        order.register(new CustomerNotifier());
 
         System.out.println("Welcome to Cafe Pos Demo");
 
@@ -130,6 +137,8 @@ public class Week6DemoCLIOrder {
             case "3" -> new WalletPayment("cli-wallet");
             default  -> new CashPayment();
         };
+        
+        order.markReady();
 
         PricingService pricing = new PricingService(discount, tax);
         ReceiptPrinter printer = new ReceiptPrinter();
