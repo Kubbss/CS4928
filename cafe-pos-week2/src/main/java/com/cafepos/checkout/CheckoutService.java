@@ -12,7 +12,11 @@ import com.cafepos.payment.PaymentStrategy;
 import com.cafepos.pricing.PricingService;
 import com.cafepos.pricing.ReceiptPrinter;
 
+import javax.lang.model.type.UnionType;
+import javax.xml.transform.Result;
 import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class CheckoutService {
     private final ProductFactory factory;
@@ -39,5 +43,27 @@ public final class CheckoutService {
         payOrder.addItem(new LineItem(product, qty));
         paymentStrategy.pay(payOrder);
         return printer.format(recipe, qty, result, taxPercent);
+    }
+    
+    public String checkout(Order order){
+        int qty = order.getItems().size();
+        List<LineItem> items = order.getItems();
+        Money unit = Money.zero(); 
+        
+        for(int i = 0; i < qty; i++){
+            Money productPrice = (items.get(i).product() instanceof com.cafepos.decorator.Priced p)
+                    ? p.price() : items.get(i).product().basePrice();
+            
+            unit =  unit.add(productPrice);
+        }
+        Money subtotal = unit;
+        var result = pricing.price(subtotal);
+        StringBuilder orderString = new StringBuilder();
+        orderString.append(STR."ID : \{order.getId()}\n");
+        for (LineItem li : order.getItems()) {
+            orderString.append(STR." - \{li.product().name()} x\{li.quantity()} = \{li.lineTotal()}\n");
+        }
+        
+        return printer.format(orderString.toString(), qty, result, taxPercent);
     }
 }
