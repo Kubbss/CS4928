@@ -1,0 +1,40 @@
+@startuml
+title Week 8 – Command Pattern Sequence (single button press)
+
+/' Actor and invoker '/
+actor Cashier
+participant "PosRemote\n(Invoker)" as PosRemote
+
+/' Concrete commands '/
+participant "AddItemCommand\n(Command)" as AddItemCmd
+participant "PayOrderCommand\n(Command)" as PayOrderCmd
+
+/' Receiver and domain collaborators '/
+participant "OrderService\n(Receiver)" as Service
+participant "ProductFactory" as Factory
+participant "Order" as OrderDom
+participant "PaymentStrategy" as PaymentStrategy
+
+== Add item flow ==
+
+Cashier -> PosRemote: press(slot 0)
+PosRemote -> PosRemote: look up command\nfor that slot
+PosRemote -> AddItemCmd: execute()
+
+AddItemCmd -> Service: addItem(recipe, qty)
+Service -> Factory: create(recipe)
+Factory --> Service: Product
+Service -> OrderDom: addItem(LineItem)
+
+== Pay order flow ==
+
+Cashier -> PosRemote: press(slot 2)
+PosRemote -> PosRemote: look up command\nfor that slot
+PosRemote -> PayOrderCmd: execute()
+
+PayOrderCmd -> Service: pay(strategy, taxPercent)
+Service -> OrderDom: totalWithTax(taxPercent)
+OrderDom --> Service: total: Money
+Service -> PaymentStrategy: pay(order)
+
+@enduml
