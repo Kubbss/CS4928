@@ -1,7 +1,9 @@
+/*
 package com.cafepos.demo;
 
+import com.cafepos.app.ReceiptPrinter;
 import com.cafepos.catalog.Product;
-import com.cafepos.checkout.CheckoutService;
+import com.cafepos.app.CheckoutService;
 import com.cafepos.common.Money;
 import com.cafepos.domain.LineItem;
 import com.cafepos.domain.Order;
@@ -159,3 +161,5 @@ public class Week6DemoCLIOrder {
         System.out.println("Total: " + order.totalWithTax(10));
     }
 }
+
+ */

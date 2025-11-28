@@ -1,0 +1,140 @@
+@startuml
+title Cafe POS — Full Architecture (Layers & Interactions)
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam classAttributeIconSize 0
+
+' ===== LAYERS =====
+package "Presentation Layer" {
+  [Week8DemoCLI] as DemoCLI
+  [Week6DemoCLI] as DemoCLI6
+  [PosRemote (Invoker)] as PosRemote
+  [KitchenDisplay]
+  [DeliveryDesk]
+  [CustomerNotifier]
+}
+
+package "Application Layer" {
+  [OrderService (Receiver)] as OrderService
+  [CheckoutService]
+  interface Command
+  [AddItemCommand] -up-|> Command
+  [PayOrderCommand] -up-|> Command
+  [MacroCommand] -up-|> Command
+  [EventBus]
+  [ReceiptPrinter]
+}
+
+package "Domain Layer" {
+  [Order] as Order
+  [LineItem]
+  interface OrderPublisher
+  interface OrderObserver
+  Order -up-|> OrderPublisher
+  [Menu]
+  [MenuItem]
+  [MenuComponent] as MenuComp
+  Menu -down-o MenuComp
+  MenuItem -up-|> MenuComp
+
+  [OrderFSM]
+  interface OrderState
+  [NewState] -up-|> OrderState
+  [PreparingState] -up-|> OrderState
+  [ReadyState] -up-|> OrderState
+  [DeliveredState] -up-|> OrderState
+  [CancelledState] -up-|> OrderState
+
+  interface PaymentStrategy
+  [CashPayment] -up-|> PaymentStrategy
+  [CardPayment] -up-|> PaymentStrategy
+  [WalletPayment] -up-|> PaymentStrategy
+
+  [Product] as Product
+  [SimpleProduct] -up-|> Product
+
+  interface DiscountPolicy
+  [NoDiscount] -up-|> DiscountPolicy
+  [LoyaltyPercentDiscount] -up-|> DiscountPolicy
+  [FixedCouponDiscount] -up-|> DiscountPolicy
+
+  interface TaxPolicy
+  [FixedRateTaxPolicy] -up-|> TaxPolicy
+
+  [PricingService]
+}
+
+package "Infrastructure Layer" {
+  [ProductFactory]
+  [InMemoryCatalog]
+  interface Printer
+  [LegacyPrinterAdapter] -up-|> Printer
+}
+
+' External / Vendor
+package "Vendor (External)" {
+  [LegacyThermalPrinter]
+}
+
+' ===== KEY STRUCTURAL LINKS =====
+Order o-- "1..*" LineItem
+SimpleProduct -down-|> Product
+
+' Observer
+OrderObserver <|-- KitchenDisplay
+OrderObserver <|-- DeliveryDesk
+OrderObserver <|-- CustomerNotifier
+Order ..> OrderObserver : notifies
+
+' State
+OrderFSM ..> OrderState : delegates
+
+' Pricing
+PricingService ..> DiscountPolicy
+PricingService ..> TaxPolicy
+
+' Commands / Invoker / Receiver
+PosRemote ..> Command : press()/undo()
+AddItemCommand ..> OrderService : execute()
+PayOrderCommand ..> OrderService : execute()
+MacroCommand ..> Command : executes many
+
+OrderService ..> Order : addItem(), totals
+OrderService ..> ProductFactory : build from recipe
+OrderService ..> PaymentStrategy : pay(order)
+
+' Checkout orchestration path
+CheckoutService ..> ProductFactory
+CheckoutService ..> PricingService
+CheckoutService ..> ReceiptPrinter
+CheckoutService ..> PaymentStrategy
+
+' Composite (menu)
+Menu ..> MenuItem : contains (composite)
+' Iterator usage implied by Menu.print()/allItems()
+
+' Adapter
+OrderService ..> Printer : print(...)
+LegacyPrinterAdapter ..> LegacyThermalPrinter : legacyPrint(byte[])
+
+' EventBus (connector)
+DemoCLI ..> EventBus : publish UI events
+EventBus ..> OrderService : deliver app events
+Order ..> EventBus : domain events (e.g., paid/ready)
+EventBus ..> KitchenDisplay
+EventBus ..> DeliveryDesk
+EventBus ..> CustomerNotifier
+
+' ===== LAYER DEPENDENCY HINTS =====
+' Presentation -> Application
+DemoCLI ..> PosRemote
+DemoCLI ..> CheckoutService
+PosRemote ..> AddItemCommand
+PosRemote ..> PayOrderCommand
+
+' Application -> Domain / Infrastructure
+OrderService ..> InMemoryCatalog
+ProductFactory ..> InMemoryCatalog
+InMemoryCatalog ..> Product
+
+@enduml

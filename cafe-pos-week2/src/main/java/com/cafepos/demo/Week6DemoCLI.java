@@ -1,8 +1,8 @@
+/*
 package com.cafepos.demo;
 
-import com.cafepos.catalog.Product;
+import com.cafepos.app.ReceiptPrinter;
 import com.cafepos.common.Money;
-import com.cafepos.domain.LineItem;
 import com.cafepos.domain.Order;
 import com.cafepos.domain.OrderIds;
 import com.cafepos.factory.ProductFactory;
@@ -10,14 +10,12 @@ import com.cafepos.payment.CashPayment;
 import com.cafepos.payment.CardPayment;
 import com.cafepos.payment.PaymentStrategy;
 import com.cafepos.payment.WalletPayment;
-import com.cafepos.checkout.CheckoutService;
+import com.cafepos.app.CheckoutService;
 import com.cafepos.pricing.*;
 import com.cafepos.view.CustomerNotifier;
 import com.cafepos.view.DeliveryDesk;
 import com.cafepos.view.KitchenDisplay;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Week6DemoCLI {
@@ -121,3 +119,5 @@ public class Week6DemoCLI {
         return input.nextLine().trim();
     }
 }
+
+ */

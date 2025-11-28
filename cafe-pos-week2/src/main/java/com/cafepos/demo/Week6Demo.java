@@ -1,12 +1,13 @@
+/*
 package com.cafepos.demo;
 
-import com.cafepos.checkout.CheckoutService;
+import com.cafepos.app.CheckoutService;
 import com.cafepos.factory.ProductFactory;
 import com.cafepos.payment.CashPayment;
 import com.cafepos.pricing.FixedRateTaxPolicy;
 import com.cafepos.pricing.LoyaltyPercentDiscount;
 import com.cafepos.pricing.PricingService;
-import com.cafepos.pricing.ReceiptPrinter;
+import com.cafepos.app.ReceiptPrinter;
 import com.cafepos.smells.OrderManagerGod;
 
 public final class Week6Demo {
@@ -25,3 +26,5 @@ public final class Week6Demo {
         System.out.println("\nMatch: " + oldReceipt.equals(newReceipt));
     }
 }
+
+ */
